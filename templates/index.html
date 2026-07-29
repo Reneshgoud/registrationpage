@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<title>Aurora Auth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070b14;
+    --panel:#0f1729;
+    --panel-2:#121c33;
+    --teal:#2de1c2;
+    --violet:#8b7cff;
+    --pink:#ff7cb6;
+    --ink:#eaf1ff;
+    --muted:#8291ad;
+    --line:rgba(234,241,255,.09);
+    --danger:#ff7a7a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    display:grid;
+    grid-template-columns: 1.05fr 1fr;
+  }
+  @media (max-width: 880px){
+    body{grid-template-columns:1fr;}
+  }
+
+  /* ---------- Aurora hero panel ---------- */
+  .hero{
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(60% 50% at 20% 15%, rgba(139,124,255,.35), transparent 60%),
+      radial-gradient(50% 40% at 80% 10%, rgba(45,225,194,.28), transparent 60%),
+      var(--bg);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:56px 48px;
+    min-height:280px;
+  }
+  .aurora{
+    position:absolute;
+    inset:-20% -10% auto -10%;
+    height:140%;
+    filter:blur(60px);
+    opacity:.55;
+    mix-blend-mode:screen;
+    pointer-events:none;
+  }
+  .aurora span{
+    position:absolute;
+    display:block;
+    border-radius:50%;
+  }
+  .aurora span:nth-child(1){
+    width:60%; height:60%; left:5%; top:0;
+    background:var(--teal);
+    animation: drift1 22s ease-in-out infinite;
+  }
+  .aurora span:nth-child(2){
+    width:50%; height:55%; right:0%; top:10%;
+    background:var(--violet);
+    animation: drift2 26s ease-in-out infinite;
+  }
+  .aurora span:nth-child(3){
+    width:40%; height:40%; left:30%; bottom:0;
+    background:var(--pink);
+    opacity:.7;
+    animation: drift3 30s ease-in-out infinite;
+  }
+  @keyframes drift1{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(6%,8%) scale(1.15); }
+  }
+  @keyframes drift2{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(-8%,4%) scale(1.1); }
+  }
+  @keyframes drift3{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(4%,-6%) scale(1.2); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .aurora span{ animation:none; }
+  }
+
+  .lines{
+    position:absolute;
+    inset:0;
+    background-image: repeating-linear-gradient(to bottom, rgba(234,241,255,.05) 0px, rgba(234,241,255,.05) 1px, transparent 1px, transparent 64px);
+    mask-image: linear-gradient(to bottom, transparent, black 40%, black 80%, transparent);
+  }
+
+  .brand{
+    position:relative;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brand-mark{
+    width:30px;height:30px;
+    border-radius:8px;
+    background:linear-gradient(135deg, var(--teal), var(--violet));
+  }
+  .brand-name{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:19px;
+    font-weight:600;
+    letter-spacing:-.01em;
+  }
+
+  .hero-copy{
+    position:relative;
+    z-index:2;
+    max-width:420px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    color:var(--teal);
+    text-transform:uppercase;
+    margin:0 0 14px;
+  }
+  .hero-copy h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(28px,4vw,40px);
+    line-height:1.15;
+    font-weight:600;
+    margin:0 0 14px;
+    letter-spacing:-.01em;
+  }
+  .hero-copy p{
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.6;
+    margin:0;
+  }
+  .hero-foot{
+    position:relative;
+    z-index:2;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:.04em;
+  }
+
+  /* ---------- Form panel ---------- */
+  .formside{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 24px;
+    background:var(--bg);
+  }
+  .card{
+    width:100%;
+    max-width:400px;
+  }
+  .tabs{
+    display:flex;
+    gap:4px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:4px;
+    margin-bottom:28px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 0;
+    border-radius:9px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    cursor:pointer;
+    background:transparent;
+    border:none;
+    transition:background .15s ease, color .15s ease;
+  }
+  .tab.active{
+    background:var(--panel-2);
+    color:var(--ink);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .panel-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .panel-sub{
+    color:var(--muted);
+    font-size:13.5px;
+    margin:0 0 26px;
+  }
+
+  form{ display:none; flex-direction:column; gap:16px; }
+  form.active{ display:flex; }
+
+  label{
+    font-size:13px;
+    color:var(--muted);
+    display:block;
+    margin-bottom:7px;
+  }
+  input[type=text], input[type=email], input[type=password]{
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    padding:12px 13px;
+    border-radius:10px;
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  input:focus{
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(45,225,194,.15);
+  }
+  input.invalid{ border-color:var(--danger); }
+
+  .field-error{
+    color:var(--danger);
+    font-size:12.5px;
+    margin-top:6px;
+    display:none;
+  }
+  .field-error.show{ display:block; }
+
+  .row-check{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.5;
+  }
+  .row-check input{ margin-top:3px; accent-color:var(--teal); }
+  .row-check a{ color:var(--teal); text-decoration:none; }
+  .row-check a:hover{ text-decoration:underline; }
+
+  button.submit{
+    margin-top:6px;
+    background:linear-gradient(135deg, var(--teal), var(--violet));
+    color:#06110e;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    border:none;
+    border-radius:10px;
+    padding:13px 0;
+    cursor:pointer;
+    transition:opacity .15s ease, transform .1s ease;
+  }
+  button.submit:hover{ opacity:.92; }
+  button.submit:active{ transform:translateY(1px); }
+  button.submit:disabled{ opacity:.55; cursor:default; }
+
+  .banner{
+    font-size:13px;
+    padding:11px 13px;
+    border-radius:10px;
+    margin-bottom:16px;
+    display:none;
+    border:1px solid var(--line);
+  }
+  .banner.show{ display:block; }
+  .banner.error{ color:var(--danger); border-color:rgba(255,122,122,.35); background:rgba(255,122,122,.07); }
+  .banner.warning{ color:#ffd27a; border-color:rgba(255,210,122,.3); background:rgba(255,210,122,.06); }
+  .banner.info{ color:var(--teal); border-color:rgba(45,225,194,.3); background:rgba(45,225,194,.06); }
+
+  .switch-line{
+    text-align:center;
+    margin-top:22px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .switch-line button{
+    background:none; border:none; color:var(--teal);
+    font-size:13px; cursor:pointer; padding:0; font-family:'Inter',sans-serif;
+  }
+</style>
+</head>
+<body>
+
+  <section class="hero">
+    <div class="aurora"><span></span><span></span><span></span></div>
+    <div class="lines"></div>
+
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-name">Aurora Auth</div>
+    </div>
+
+    <div class="hero-copy">
+      <p class="eyebrow">Secure Access</p>
+      <h1>One quiet place to sign in.</h1>
+      <p>Your account, your session, your data — kept in one calm, well-lit corner of the internet.</p>
+    </div>
+
+    <div class="hero-foot">ENCRYPTED · SESSION-BASED · NO THIRD-PARTY TRACKING</div>
+  </section>
+
+  <section class="formside">
+    <div class="card">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="banner show {{ category if category in ['error','warning','info'] else 'info' }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="tabs">
+        <button type="button" class="tab active" data-target="signup-form" id="tab-signup">Sign up</button>
+        <button type="button" class="tab" data-target="login-form" id="tab-login">Log in</button>
+      </div>
+
+      <div id="panel-signup">
+        <h2 class="panel-title">Create your account</h2>
+        <p class="panel-sub">Takes less than a minute.</p>
+      </div>
+      <div id="panel-login" style="display:none;">
+        <h2 class="panel-title">Welcome back</h2>
+        <p class="panel-sub">Log in to pick up where you left off.</p>
+      </div>
+
+      <div class="banner error" id="signup-banner"></div>
+      <form id="signup-form" class="active" novalidate>
+        <div>
+          <label for="fullName">Full name</label>
+          <input type="text" id="fullName" name="fullName" autocomplete="name" required>
+          <div class="field-error" id="err-fullName"></div>
+        </div>
+        <div>
+          <label for="su-email">Email</label>
+          <input type="email" id="su-email" name="email" autocomplete="email" required>
+          <div class="field-error" id="err-email"></div>
+        </div>
+        <div>
+          <label for="su-password">Password</label>
+          <input type="password" id="su-password" name="password" autocomplete="new-password" required>
+          <div class="field-error" id="err-password"></div>
+        </div>
+        <label class="row-check">
+          <input type="checkbox" id="agree" required>
+          <span>I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</span>
+        </label>
+        <div class="field-error" id="err-terms"></div>
+        <label class="row-check">
+          <input type="checkbox" id="newsletter">
+          <span>Send me occasional product updates.</span>
+        </label>
+        <button type="submit" class="submit" id="signup-btn">Create account</button>
+      </form>
+
+      <div class="banner error" id="login-banner"></div>
+      <form id="login-form" novalidate>
+        <div>
+          <label for="li-email">Email</label>
+          <input type="email" id="li-email" name="email" autocomplete="email" required>
+          <div class="field-error" id="err-li-email"></div>
+        </div>
+        <div>
+          <label for="li-password">Password</label>
+          <input type="password" id="li-password" name="password" autocomplete="current-password" required>
+          <div class="field-error" id="err-li-password"></div>
+        </div>
+        <button type="submit" class="submit" id="login-btn">Log in</button>
+      </form>
+
+      <div class="switch-line" id="switch-signup">
+        Already have an account? <button type="button" id="go-login">Log in</button>
+      </div>
+      <div class="switch-line" id="switch-login" style="display:none;">
+        New here? <button type="button" id="go-signup">Create an account</button>
+      </div>
+
+    </div>
+  </section>
+
+<script>
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+  function showTab(target){
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.target === target));
+    document.getElementById('signup-form').classList.toggle('active', target === 'signup-form');
+    document.getElementById('login-form').classList.toggle('active', target === 'login-form');
+    document.getElementById('panel-signup').style.display = target === 'signup-form' ? 'block' : 'none';
+    document.getElementById('panel-login').style.display = target === 'login-form' ? 'block' : 'none';
+    document.getElementById('switch-signup').style.display = target === 'signup-form' ? 'block' : 'none';
+    document.getElementById('switch-login').style.display = target === 'login-form' ? 'block' : 'none';
+  }
+
+  document.getElementById('tab-signup').addEventListener('click', () => showTab('signup-form'));
+  document.getElementById('tab-login').addEventListener('click', () => showTab('login-form'));
+  document.getElementById('go-login').addEventListener('click', () => showTab('login-form'));
+  document.getElementById('go-signup').addEventListener('click', () => showTab('signup-form'));
+
+  function clearErrors(prefix, ids){
+    ids.forEach(id => {
+      const el = document.getElementById('err-' + id);
+      if (el){ el.classList.remove('show'); el.textContent = ''; }
+    });
+    const banner = document.getElementById(prefix + '-banner');
+    if (banner){ banner.classList.remove('show'); banner.textContent = ''; }
+  }
+
+  function setError(id, msg){
+    const el = document.getElementById('err-' + id);
+    if (el){ el.textContent = msg; el.classList.add('show'); }
+  }
+
+  async function postJSON(url, payload){
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify(payload)
+    });
+    let data;
+    try { data = await res.json(); } catch (e) { data = {}; }
+    return { status: res.status, data };
+  }
+
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors('signup', ['fullName','email','password','terms']);
+
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating account…';
+
+    const agree = document.getElementById('agree').checked;
+
+    const { status, data } = await postJSON('/api/register', {
+      fullName: document.getElementById('fullName').value,
+      email: document.getElementById('su-email').value,
+      password: document.getElementById('su-password').value,
+      terms: agree,
+      privacy: agree,
+      newsletter: document.getElementById('newsletter').checked
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Create account';
+
+    if (status === 200 && data.ok){
+      window.location.href = data.redirect || '/dashboard';
+      return;
+    }
+
+    if (data.errors){
+      Object.entries(data.errors).forEach(([field, msg]) => setError(field, msg));
+    } else {
+      const banner = document.getElementById('signup-banner');
+      banner.textContent = data.error || 'Something went wrong. Please try again.';
+      banner.classList.add('show');
+    }
+  });
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clearErrors('login', ['li-email','li-password']);
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    btn.textContent = 'Logging in…';
+
+    const { status, data } = await postJSON('/api/login', {
+      email: document.getElementById('li-email').value,
+      password: document.getElementById('li-password').value
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Log in';
+
+    if (status === 200 && data.ok){
+      window.location.href = data.redirect || '/dashboard';
+      return;
+    }
+
+    if (data.errors){
+      Object.entries(data.errors).forEach(([field, msg]) => {
+        const mappedId = field === 'email' ? 'li-email' : field === 'password' ? 'li-password' : field;
+        setError(mappedId, msg);
+      });
+    } else {
+      const banner = document.getElementById('login-banner');
+      banner.textContent = data.error || 'Something went wrong. Please try again.';
+      banner.classList.add('show');
+    }
+  });
+</script>
+
+</body>
+</html>
